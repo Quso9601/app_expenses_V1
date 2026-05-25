@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .app-container { background-color: #ffffff; width: 100%; max-width: 400px; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px; }
+        h2 { color: #333; margin-bottom: 20px; text-align: center; font-size: 1.4rem; }
+        .form-group { margin-bottom: 16px; position: relative; }
+        label { display: block; font-size: 0.85rem; color: #666; font-weight: 600; margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; background-color: #fafafa; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: #2e7d32; background-color: #fff; }
+        textarea { resize: none; height: 70px; }
+        
+        /* Contenedor especial para el símbolo de Euro */
+        .currency-wrapper { position: relative; display: flex; align-items: center; }
+        .currency-wrapper input { padding-left: 30px; }
+        .currency-symbol { position: absolute; left: 12px; color: #555; font-weight: 500; font-size: 1rem; }
+
+        button { width: 100%; padding: 14px; background-color: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:active { background-color: #1b5e20; }
+        #statusMessage { margin-top: 15px; text-align: center; font-size: 0.9rem; font-weight: 500; display: none; padding: 10px; border-radius: 6px; }
+        .success { background-color: #e3fbe3; color: #2e7d32; }
+        .error { background-color: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h2>Registrar Nuevo Gasto</h2>
+    <form id="expenseForm">
+        <div class="form-group">
+            <label for="date">Fecha</label>
+            <input type="date" id="date" required>
+        </div>
+        <div class="form-group">
+            <label for="category">Categoría</label>
+            <select id="category" required>
+                <option value="">Selecciona una categoría...</option>
+                <option value="Viveres">Viveres</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Restaurant">Restaurant</option>
+                <option value="Bares">Bares</option>
+                <option value="Bolsillo">Bolsillo</option>
+                <option value="Restaurant Pareja">Restaurant Pareja</option>
+                <option value="Eventos Pareja">Eventos Pareja</option>
+                <option value="Regalos Pareja">Regalos Pareja</option>
+                <option value="Ropa">Ropa</option>
+                <option value="Eventos">Eventos</option>
+                <option value="Gustos">Gustos</option>
+                <option value="Otros">Otros</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="quantity">Cantidad</label>
+            <div class="currency-wrapper">
+                <span class="currency-symbol">€</span>
+                <input type="number" id="quantity" step="0.01" placeholder="0.00" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="comments">Comentarios</label>
+            <textarea id="comments" placeholder="¿En qué consistió este gasto?"></textarea>
+        </div>
+        <button type="submit" id="submitBtn">Guardar Gasto</button>
+    </form>
+    <div id="statusMessage"></div>
+</div>
+
+<script>
+    // Establecer la fecha de hoy automáticamente
+    document.getElementById('date').valueAsDate = new Date();
+
+    // Tu enlace seguro y directo a la nueva hoja independiente
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhvOa5lrPnVSnszoqCDjk5t_UJmhMukLBgfLb0yvS1Yx-GDuoa-7tjyJIg-JvvC5oa/exec";
+
+    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        submitBtn.innerText = "Guardando...";
+        submitBtn.disabled = true;
+        statusMessage.style.display = "none";
+
+        const expenseData = {
+            date: document.getElementById('date').value,
+            category: document.getElementById('category').value,
+            quantity: parseFloat(document.getElementById('quantity').value),
+            comments: document.getElementById('comments').value
+        };
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            cache: "no-cache",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(expenseData)
+        })
+        .then(response => {
+            statusMessage.innerText = "¡Gasto guardado con éxito!";
+            statusMessage.className = "success";
+            statusMessage.style.display = "block";
+            
+            // Limpiar formulario (excepto fecha)
+            document.getElementById('category').value = "";
+            document.getElementById('quantity').value = "";
+            document.getElementById('comments').value = "";
+        })
+        .catch(error => {
+            statusMessage.innerText = "Error al guardar el gasto. Intenta de nuevo.";
+            statusMessage.className = "error";
+            statusMessage.style.display = "block";
+            console.error(error);
+        })
+        .finally(() => {
+            submitBtn.innerText = "Guardar Gasto";
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
